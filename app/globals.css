@@ -1,26 +1,367 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* =========================================================
+   TEMA CLARO
+   ========================================================= */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* shadcn/ui */
+  --background: #f5f7fa;
+  --foreground: #18202e;
+
+  --card: #ffffff;
+  --card-foreground: #18202e;
+
+  --popover: #ffffff;
+  --popover-foreground: #18202e;
+
+  --primary: #d97706;
+  --primary-foreground: #ffffff;
+
+  --secondary: #eef1f5;
+  --secondary-foreground: #263244;
+
+  --muted: #eef1f5;
+  --muted-foreground: #687386;
+
+  --accent: #f8f0e8;
+  --accent-foreground: #a55213;
+
+  --destructive: #dc2626;
+
+  --border: rgba(24, 32, 46, 0.1);
+  --input: rgba(24, 32, 46, 0.12);
+  --ring: #d97706;
+
+  /* Gráficos */
+  --chart-1: #d97706;
+  --chart-2: #3b82f6;
+  --chart-3: #14b8a6;
+  --chart-4: #8b5cf6;
+  --chart-5: #64748b;
+
+  --radius: 0.875rem;
+
+  /* Dashboard */
+  --dashboard-background: #f5f7fa;
+  --dashboard-sidebar: rgba(255, 255, 255, 0.96);
+  --dashboard-topbar: rgba(250, 251, 252, 0.88);
+  --dashboard-control: rgba(24, 32, 46, 0.045);
+
+  --dashboard-foreground: #18202e;
+  --dashboard-muted: #687386;
+  --dashboard-border: rgba(24, 32, 46, 0.09);
+
+  /* Naranja cobrizo: solo acento */
+  --dashboard-accent: #d97706;
+  --dashboard-accent-foreground: #a44c0b;
+  --dashboard-accent-soft: rgba(217, 119, 6, 0.075);
+  --dashboard-accent-border: rgba(217, 119, 6, 0.19);
+
+  --dashboard-success: #0f9f73;
+  --dashboard-success-foreground: #087052;
+  --dashboard-success-soft: rgba(15, 159, 115, 0.08);
+  --dashboard-success-border: rgba(15, 159, 115, 0.18);
+
+  --dashboard-warning: #c47a0b;
+  --dashboard-warning-soft: rgba(196, 122, 11, 0.08);
+
+  --dashboard-danger: #dc4444;
+  --dashboard-danger-soft: rgba(220, 68, 68, 0.08);
+
+  /* Efectos muy suaves */
+  --dashboard-glow-primary: rgba(217, 119, 6, 0.07);
+  --dashboard-glow-secondary: rgba(59, 130, 246, 0.055);
+  --dashboard-shadow: rgba(30, 41, 59, 0.09);
+
+  /* Sidebar de shadcn */
+  --sidebar: #ffffff;
+  --sidebar-foreground: #18202e;
+  --sidebar-primary: #d97706;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f8f0e8;
+  --sidebar-accent-foreground: #a55213;
+  --sidebar-border: rgba(24, 32, 46, 0.09);
+  --sidebar-ring: #d97706;
 }
+
+/* =========================================================
+   TEMA OSCURO
+   ========================================================= */
+
+.dark {
+  color-scheme: dark;
+
+  /* shadcn/ui */
+  --background: #0f131a;
+  --foreground: #edf1f7;
+
+  --card: #161b24;
+  --card-foreground: #edf1f7;
+
+  --popover: #181e28;
+  --popover-foreground: #edf1f7;
+
+  --primary: #e79a4e;
+  --primary-foreground: #241507;
+
+  --secondary: #1c232e;
+  --secondary-foreground: #dfe5ee;
+
+  --muted: #1c232e;
+  --muted-foreground: #96a1b3;
+
+  --accent: #29221d;
+  --accent-foreground: #f2bb82;
+
+  --destructive: #f16f6f;
+
+  --border: rgba(226, 232, 240, 0.085);
+  --input: rgba(226, 232, 240, 0.11);
+  --ring: #e79a4e;
+
+  /* Gráficos */
+  --chart-1: #e79a4e;
+  --chart-2: #60a5fa;
+  --chart-3: #2dd4bf;
+  --chart-4: #a78bfa;
+  --chart-5: #94a3b8;
+
+  /* Dashboard */
+  --dashboard-background: #0f131a;
+  --dashboard-sidebar: rgba(18, 23, 31, 0.96);
+  --dashboard-topbar: rgba(15, 19, 26, 0.88);
+  --dashboard-control: rgba(255, 255, 255, 0.035);
+
+  --dashboard-foreground: #edf1f7;
+  --dashboard-muted: #96a1b3;
+  --dashboard-border: rgba(226, 232, 240, 0.075);
+
+  /* Acento cálido y discreto */
+  --dashboard-accent: #e79a4e;
+  --dashboard-accent-foreground: #f3bd87;
+  --dashboard-accent-soft: rgba(231, 154, 78, 0.085);
+  --dashboard-accent-border: rgba(231, 154, 78, 0.17);
+
+  --dashboard-success: #36c99a;
+  --dashboard-success-foreground: #91e7ca;
+  --dashboard-success-soft: rgba(54, 201, 154, 0.075);
+  --dashboard-success-border: rgba(54, 201, 154, 0.17);
+
+  --dashboard-warning: #e5ae55;
+  --dashboard-warning-soft: rgba(229, 174, 85, 0.08);
+
+  --dashboard-danger: #ef7474;
+  --dashboard-danger-soft: rgba(239, 116, 116, 0.075);
+
+  /* Brillos mínimos */
+  --dashboard-glow-primary: rgba(231, 154, 78, 0.07);
+  --dashboard-glow-secondary: rgba(96, 165, 250, 0.05);
+  --dashboard-shadow: rgba(0, 0, 0, 0.32);
+
+  /* Sidebar de shadcn */
+  --sidebar: #12171f;
+  --sidebar-foreground: #edf1f7;
+  --sidebar-primary: #e79a4e;
+  --sidebar-primary-foreground: #241507;
+  --sidebar-accent: #29221d;
+  --sidebar-accent-foreground: #f2bb82;
+  --sidebar-border: rgba(226, 232, 240, 0.075);
+  --sidebar-ring: #e79a4e;
+}
+
+/* =========================================================
+   VARIABLES DISPONIBLES COMO CLASES DE TAILWIND
+   ========================================================= */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-dashboard-background: var(--dashboard-background);
+  --color-dashboard-sidebar: var(--dashboard-sidebar);
+  --color-dashboard-topbar: var(--dashboard-topbar);
+  --color-dashboard-control: var(--dashboard-control);
+
+  --color-dashboard-foreground: var(--dashboard-foreground);
+  --color-dashboard-muted: var(--dashboard-muted);
+  --color-dashboard-border: var(--dashboard-border);
+
+  --color-dashboard-accent: var(--dashboard-accent);
+  --color-dashboard-accent-foreground:
+    var(--dashboard-accent-foreground);
+  --color-dashboard-accent-soft: var(--dashboard-accent-soft);
+  --color-dashboard-accent-border: var(--dashboard-accent-border);
+
+  --color-dashboard-success: var(--dashboard-success);
+  --color-dashboard-success-foreground:
+    var(--dashboard-success-foreground);
+  --color-dashboard-success-soft: var(--dashboard-success-soft);
+  --color-dashboard-success-border: var(--dashboard-success-border);
+
+  --color-dashboard-warning: var(--dashboard-warning);
+  --color-dashboard-warning-soft: var(--dashboard-warning-soft);
+
+  --color-dashboard-danger: var(--dashboard-danger);
+  --color-dashboard-danger-soft: var(--dashboard-danger-soft);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground:
+    var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground:
+    var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+  --font-heading: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* =========================================================
+   ESTILOS GENERALES
+   ========================================================= */
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    min-height: 100%;
+    background: var(--background);
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    min-height: 100vh;
+    margin: 0;
+    transition:
+      background-color 180ms ease,
+      color 180ms ease;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/70;
+  }
+
+  ::selection {
+    color: var(--primary-foreground);
+    background: var(--primary);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* =========================================================
+   BOTÓN DE MODO CLARO / OSCURO
+   ========================================================= */
+
+/* En modo claro muestra la opción para pasar a oscuro. */
+.theme-toggle-to-light {
+  display: none;
+}
+
+/* En modo oscuro muestra la opción para pasar a claro. */
+.dark .theme-toggle-to-dark {
+  display: none;
+}
+
+.dark .theme-toggle-to-light {
+  display: inline;
+}
+
+/* =========================================================
+   SCROLLBAR DEL DASHBOARD
+   ========================================================= */
+
+.dashboard-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--dashboard-accent-border) transparent;
+  scrollbar-gutter: stable;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--dashboard-border);
+  border-radius: 999px 0 0 999px;
+}
+
+.dashboard-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: var(--dashboard-accent-border);
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--dashboard-accent);
+}
+
+/* =========================================================
+   ACCESIBILIDAD Y MOVIMIENTO
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
