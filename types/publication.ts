@@ -35,3 +35,47 @@ export type PublicationsPage = Readonly<{
   publications: readonly Publication[];
   paging: PublicationsPaging;
 }>;
+
+export type PublicationAttribute = Readonly<{
+  id: string;
+  value: string | null;
+}>;
+
+export type SharedVariationDetail = Readonly<{
+  id: string;
+  label: string | null;
+  color: string | null;
+  size: string | null;
+  availableQuantity: number | null;
+  soldQuantity: number | null;
+  attributes: readonly PublicationAttribute[];
+}>;
+
+export type VariantPricingChildDetail = Readonly<{
+  id: string;
+  title: string | null;
+  thumbnail: string | null;
+  itemId: string | null;
+  userProductId: string | null;
+  color: string | null;
+  size: string | null;
+  filterableSize: string | null;
+  sku: string | null;
+  price: number | null;
+  currencyId: string | null;
+  availableQuantity: number | null;
+  soldQuantity: number | null;
+  status: string | null;
+  listingTypeId: string | null;
+  permalink: string | null;
+  attributes: readonly PublicationAttribute[];
+}>;
+
+export type PublicationDetail = Publication &
+  Readonly<{
+    familyId: string | null;
+    parentItemId: string | null;
+    permalink: string | null;
+    sharedVariations: readonly SharedVariationDetail[];
+    children: readonly VariantPricingChildDetail[];
+  }>;

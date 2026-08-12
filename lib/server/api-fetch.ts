@@ -8,6 +8,16 @@ type ApiGetOptions = Readonly<{
 
 const API_URL = process.env.NEST_API_URL;
 
+export class ApiRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+    this.name = "ApiRequestError";
+  }
+}
+
 export async function apiGet<T>(
   path: string,
   options: ApiGetOptions = {},
@@ -33,8 +43,9 @@ export async function apiGet<T>(
   });
 
   if (!response.ok) {
-    throw new Error(
+    throw new ApiRequestError(
       `Error consultando ${path}: ${response.status}`,
+      response.status,
     );
   }
 

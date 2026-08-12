@@ -321,6 +321,177 @@
 }
 
 /* =========================================================
+   SIDEBAR COLAPSABLE
+   ========================================================= */
+
+.dashboard-sidebar-copy {
+  display: block;
+  max-width: 12rem;
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 1;
+  transition:
+    max-width 200ms ease,
+    opacity 150ms ease;
+}
+
+@media (min-width: 64rem) {
+  .dashboard-shell:has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar {
+    width: 4.7rem;
+    padding-inline: 0.4rem;
+  }
+
+  .dashboard-shell:has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-content {
+    padding-left: 4rem;
+  }
+  
+  .dashboard-shell:has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-header {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .dashboard-shell:has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-home {
+    width: 100%;
+    flex: none;
+    gap: 0;
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .dashboard-shell:has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-copy {
+    max-width: 0;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .dashboard-shell:has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-section-label {
+    max-height: 0;
+    padding-inline: 0;
+  }
+
+  .dashboard-shell:has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-navigation {
+    margin-top: 1rem;
+    overflow-x: hidden;
+    padding-right: 4;
+  }
+
+  .dashboard-shell:has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-link {
+    justify-content: center;
+    gap: 0;
+    padding-inline: 0.5rem;
+  }
+
+  .dashboard-shell:has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-user {
+    justify-content: center;
+    gap: 0;
+    padding: 0.25rem;
+  }
+
+  .dashboard-shell:has(.publication-detail-page):has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar {
+    width: 5.7rem;
+    padding-inline: 0.75rem;
+  }
+
+  .dashboard-shell:has(.publication-detail-page):has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-content {
+    padding-left: 10.5rem;
+  }
+
+  .dashboard-shell:has(.publication-detail-page):has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-header {
+    flex-direction: row;
+    gap: 0.5rem;
+  }
+
+  .dashboard-shell:has(.publication-detail-page):has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-home {
+    width: auto;
+    flex: 1;
+    gap: 0.5rem;
+    justify-content: flex-start;
+  }
+
+  .dashboard-shell:has(.publication-detail-page):has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-copy {
+    max-width: 6rem;
+    pointer-events: auto;
+    opacity: 1;
+  }
+
+  .dashboard-shell:has(.publication-detail-page):has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-section-label {
+    max-height: none;
+    padding-inline: 0.75rem;
+  }
+
+  .dashboard-shell:has(.publication-detail-page):has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-navigation {
+    margin-top: 1.75rem;
+    padding-right: 0.25rem;
+  }
+
+  .dashboard-shell:has(.publication-detail-page):has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-link {
+    justify-content: flex-start;
+    gap: 0.625rem;
+    padding-inline: 0.75rem;
+  }
+
+  .dashboard-shell:has(.publication-detail-page):has(
+      .sidebar-collapse-toggle[data-sidebar-collapsed="true"]
+    )
+    .dashboard-sidebar-user {
+    justify-content: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+}
+
+/* =========================================================
    SCROLLBAR DEL DASHBOARD
    ========================================================= */
 

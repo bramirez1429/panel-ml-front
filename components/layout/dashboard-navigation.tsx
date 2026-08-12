@@ -67,7 +67,7 @@ const secondaryNavigation: readonly NavigationItem[] = [
 ];
 
 const navigationLinkBase =
-  "group flex min-h-11 w-full items-center gap-3 rounded-[10px] border px-3.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dashboard-accent";
+  "dashboard-sidebar-link group flex min-h-11 w-full items-center gap-3 rounded-[10px] border px-3.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dashboard-accent";
 
 function NavigationLinks({
   items,
@@ -92,6 +92,8 @@ function NavigationLinks({
             <Link
               href={item.href}
               aria-current={isActive ? "page" : undefined}
+              aria-label={item.label}
+              title={item.label}
               className={`${navigationLinkBase} ${
                 isActive
                   ? "border-dashboard-accent-border bg-dashboard-accent-soft text-dashboard-accent-foreground shadow-[inset_2px_0_0_var(--dashboard-accent)]"
@@ -104,7 +106,9 @@ function NavigationLinks({
                 strokeWidth={1.8}
               />
 
-              <span className="truncate">{item.label}</span>
+              <span className="dashboard-sidebar-copy truncate">
+                {item.label}
+              </span>
             </Link>
           </li>
         );
@@ -119,9 +123,9 @@ export function DashboardNavigation() {
   return (
     <nav
       aria-label="Navegación principal"
-      className="dashboard-scrollbar mt-8 -mr-5 min-h-0 flex-1 overflow-y-auto pr-2"
+      className="dashboard-sidebar-navigation dashboard-scrollbar mt-7 min-h-0 flex-1 overflow-y-auto pr-1"
     >
-      <p className="px-3.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-dashboard-muted">
+      <p className="dashboard-sidebar-copy dashboard-sidebar-section-label px-3.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-dashboard-muted">
         Gestión
       </p>
 
@@ -134,7 +138,7 @@ export function DashboardNavigation() {
 
       <div className="my-6 h-px bg-gradient-to-r from-transparent via-dashboard-border to-transparent" />
 
-      <p className="px-3.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-dashboard-muted">
+      <p className="dashboard-sidebar-copy dashboard-sidebar-section-label px-3.5 text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-dashboard-muted">
         Sistema
       </p>
 

@@ -1,25 +1,25 @@
 import "server-only";
 
+import {
+  asFiniteNumber,
+  createPrice,
+  normalizeThumbnail,
+  preferredSize,
+  textOrNull,
+  uniqueSortedSizes,
+} from "@/lib/api/publication-data";
 import { apiGet } from "@/lib/server/api-fetch";
 import type {
   Publication,
   PublicationModel,
-  PublicationPrice,
   PublicationsPage,
 } from "@/types/publication";
-
-type ApiAttribute = Readonly<{
-  id?: string | null;
-  name?: string | null;
-  value?: string | number | null;
-  value_name?: string | null;
-}>;
 
 type ApiVariation = Readonly<{
   size?: string | number | null;
   talle?: string | number | null;
-  attributes?: readonly ApiAttribute[] | null;
-  attribute_combinations?: readonly ApiAttribute[] | null;
+  attributes?: unknown;
+  attribute_combinations?: unknown;
 }>;
 
 type ApiPublication = Readonly<{
@@ -36,6 +36,7 @@ type ApiPublication = Readonly<{
   price?: number | null;
   stock_total: number | null;
   children_count: number | null;
+  variants_count?: number | null;
   children?: readonly ApiVariation[] | null;
   shared_variations?: readonly ApiVariation[] | null;
   sizes?: readonly (string | number)[] | null;
@@ -66,51 +67,6 @@ type GetPublicationsOptions = Readonly<{
   limit: number;
 }>;
 
-function asFiniteNumber(value: number | null | undefined) {
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
-}
-
-function createPrice(
-  fromValue: number | null | undefined,
-  toValue: number | null | undefined,
-  currencyId: string | null,
-): PublicationPrice | null {
-  const from = asFiniteNumber(fromValue);
-
-  if (from === null || !currencyId) {
-    return null;
-  }
-
-  return {
-    from,
-    to: asFiniteNumber(toValue),
-    currencyId,
-  };
-}
-
-function normalizeThumbnail(thumbnail: string | null) {
-  if (!thumbnail) {
-    return null;
-  }
-
-  try {
-    const url = new URL(thumbnail);
-
-    if (
-      url.hostname !== "http2.mlstatic.com" ||
-      url.port !== "" ||
-      url.search !== ""
-    ) {
-      return null;
-    }
-
-    url.protocol = "https:";
-    return url.toString();
-  } catch {
-    return null;
-  }
-}
-
 function readSize(variation: ApiVariation) {
   const directValue = variation.size ?? variation.talle;
 
@@ -118,20 +74,10 @@ function readSize(variation: ApiVariation) {
     return String(directValue).trim();
   }
 
-  const attributes = [
-    ...(variation.attribute_combinations ?? []),
-    ...(variation.attributes ?? []),
-  ];
-
-  const sizeAttribute = attributes.find((attribute) => {
-    const key = `${attribute.id ?? ""} ${attribute.name ?? ""}`.toUpperCase();
-    return key.includes("SIZE") || key.includes("TALLE");
-  });
-
-  const attributeValue = sizeAttribute?.value_name ?? sizeAttribute?.value;
-  return attributeValue === null || attributeValue === undefined
-    ? null
-    : String(attributeValue).trim();
+  return preferredSize([
+    ...asArray(variation.attribute_combinations),
+    ...asArray(variation.attributes),
+  ]);
 }
 
 function extractSizes(publication: ApiPublication) {
@@ -153,12 +99,16 @@ function extractSizes(publication: ApiPublication) {
     return null;
   }
 
-  return [...new Set(values)].sort((left, right) =>
-    left.localeCompare(right, "es", { numeric: true }),
-  );
+  return uniqueSortedSizes(values);
 }
 
 function getVariantsCount(publication: ApiPublication) {
+  const aggregatedCount = asFiniteNumber(publication.variants_count);
+
+  if (aggregatedCount !== null) {
+    return aggregatedCount;
+  }
+
   if (publication.model === "VARIANT_PRICING") {
     return (
       asFiniteNumber(publication.children_count) ??
@@ -171,7 +121,7 @@ function getVariantsCount(publication: ApiPublication) {
 }
 
 function mapPublication(publication: ApiPublication): Publication {
-  const currencyId = publication.currency_id || null;
+  const currencyId = textOrNull(publication.currency_id);
   const regularPrice =
     publication.regular_price_from ??
     publication.regular_price ??
@@ -181,9 +131,9 @@ function mapPublication(publication: ApiPublication): Publication {
   return {
     id: publication.id,
     model: publication.model,
-    title: publication.title || publication.family_name || null,
+    title: textOrNull(publication.title) ?? textOrNull(publication.family_name),
     thumbnail: normalizeThumbnail(publication.thumbnail),
-    status: publication.status || null,
+    status: textOrNull(publication.status),
     currencyId,
     stockTotal: asFiniteNumber(publication.stock_total),
     variantsCount: getVariantsCount(publication),
@@ -208,6 +158,10 @@ function mapPublication(publication: ApiPublication): Publication {
         ? publication.has_flex
         : null,
   };
+}
+
+function asArray(value: unknown): readonly unknown[] {
+  return Array.isArray(value) ? value : [];
 }
 
 export async function getPublications({

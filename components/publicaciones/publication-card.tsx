@@ -3,100 +3,15 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-import type {
-  Publication,
-  PublicationPrice,
-} from "@/types/publication";
-
-const EMPTY_VALUE = "—";
-
-function formatInteger(value: number | null) {
-  return value === null
-    ? EMPTY_VALUE
-    : new Intl.NumberFormat("es-AR").format(value);
-}
-
-function formatMoney(value: number | null, currencyId: string | null) {
-  if (value === null || !currencyId) {
-    return EMPTY_VALUE;
-  }
-
-  try {
-    return new Intl.NumberFormat("es-AR", {
-      style: "currency",
-      currency: currencyId,
-      currencyDisplay: "narrowSymbol",
-      maximumFractionDigits: 0,
-    }).format(value);
-  } catch {
-    return EMPTY_VALUE;
-  }
-}
-
-function formatPrice(price: PublicationPrice | null) {
-  if (!price) {
-    return EMPTY_VALUE;
-  }
-
-  const from = formatMoney(price.from, price.currencyId);
-  const to = formatMoney(price.to, price.currencyId);
-
-  return price.to === null || price.from === price.to
-    ? from
-    : `${from} – ${to}`;
-}
-
-function formatPercentage(value: number | null) {
-  if (value === null) {
-    return EMPTY_VALUE;
-  }
-
-  return `${new Intl.NumberFormat("es-AR", {
-    maximumFractionDigits: 1,
-  }).format(value)}%`;
-}
-
-function getStatus(status: string | null) {
-  if (!status) {
-    return {
-      label: EMPTY_VALUE,
-      className:
-        "border-dashboard-border bg-dashboard-control text-dashboard-muted",
-    };
-  }
-
-  const normalized = status.toLowerCase();
-
-  if (normalized === "active") {
-    return {
-      label: "Activa",
-      className:
-        "border-dashboard-success-border bg-dashboard-success-soft text-dashboard-success-foreground",
-    };
-  }
-
-  if (normalized === "paused") {
-    return {
-      label: "Pausada",
-      className:
-        "border-dashboard-accent-border bg-dashboard-warning-soft text-dashboard-warning",
-    };
-  }
-
-  if (normalized === "closed") {
-    return {
-      label: "Finalizada",
-      className:
-        "border-dashboard-border bg-dashboard-control text-dashboard-muted",
-    };
-  }
-
-  return {
-    label: status.replaceAll("_", " "),
-    className:
-      "border-dashboard-border bg-dashboard-control text-dashboard-muted",
-  };
-}
+import {
+  EMPTY_VALUE,
+  formatInteger,
+  formatMoney,
+  formatPercentage,
+  formatPrice,
+  getStatusDisplay,
+} from "@/components/publicaciones/publication-display";
+import type { Publication } from "@/types/publication";
 
 function Metric({
   label,
@@ -117,16 +32,17 @@ function Metric({
 export function PublicationCard({
   publication,
 }: Readonly<{ publication: Publication }>) {
-  const status = getStatus(publication.status);
-  const modelLabel =
-    publication.model === "VARIANT_PRICING" ? "NUEVA" : "SHARED";
+  const status = getStatusDisplay(publication.status);
   const variantsLabel =
     publication.variantsCount === null
       ? EMPTY_VALUE
       : `${formatInteger(publication.variantsCount)} ${
           publication.variantsCount === 1 ? "variante" : "variantes"
         }`;
-  const sizes = publication.sizes?.join(" · ") || EMPTY_VALUE;
+  const modelLabel =
+    publication.model === "VARIANT_PRICING"
+      ? "Publicación con variantes"
+      : "Publicación simple";
   const regularPrice = formatPrice(publication.regularPrice);
   const title = publication.title || EMPTY_VALUE;
 
@@ -181,8 +97,7 @@ export function PublicationCard({
         </div>
 
         <div className="col-span-2 min-w-0 border-t border-dashboard-border pt-4 sm:col-span-1 sm:col-start-2">
-          <dl className="grid grid-cols-2 gap-x-4 gap-y-4 md:grid-cols-4 md:gap-x-6">
-            <Metric label="Talles">{sizes}</Metric>
+          <dl className="grid grid-cols-2 gap-x-4 gap-y-4 md:grid-cols-3 md:gap-x-6">
             <Metric label="Stock">{formatInteger(publication.stockTotal)}</Metric>
             <Metric label="Precio actual">
               {formatPrice(publication.currentPrice)}
