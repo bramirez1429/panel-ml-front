@@ -41,11 +41,17 @@ export type PublicationAttribute = Readonly<{
   value: string | null;
 }>;
 
+export type PublicationPicture = Readonly<{
+  id: string;
+  url: string;
+}>;
+
 export type SharedVariationDetail = Readonly<{
   id: string;
   label: string | null;
   color: string | null;
   size: string | null;
+  sku: string | null;
   availableQuantity: number | null;
   soldQuantity: number | null;
   attributes: readonly PublicationAttribute[];
@@ -68,6 +74,7 @@ export type VariantPricingChildDetail = Readonly<{
   status: string | null;
   listingTypeId: string | null;
   permalink: string | null;
+  pictures: readonly PublicationPicture[];
   attributes: readonly PublicationAttribute[];
 }>;
 
@@ -75,7 +82,11 @@ export type PublicationDetail = Publication &
   Readonly<{
     familyId: string | null;
     parentItemId: string | null;
+    sku: string | null;
+    description: string | null;
+    attributes: readonly PublicationAttribute[];
     permalink: string | null;
+    pictures: readonly PublicationPicture[];
     sharedVariations: readonly SharedVariationDetail[];
     children: readonly VariantPricingChildDetail[];
   }>;

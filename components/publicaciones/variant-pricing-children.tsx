@@ -7,14 +7,41 @@ import {
   formatMoney,
   getStatusDisplay,
 } from "@/components/publicaciones/publication-display";
+import { EditSku } from "@/components/publicaciones/edit-sku";
+import { InlinePublicationEditor } from "@/components/publicaciones/inline-publication-editor";
+import { PictureManager } from "@/components/publicaciones/picture-manager";
+import { PublicationChildContent } from "@/components/publicaciones/publication-child-content";
+import { PublicationStatusButton } from "@/components/publicaciones/publication-status-button";
 import {
   comparePublicationSizes,
   comparePublicationText,
 } from "@/lib/publications/size-order";
 import type { VariantPricingChildDetail } from "@/types/publication";
+import type { PublicationPriceSummary } from "@/types/publication-commercial";
+import type { PublicationCapabilities } from "@/types/publication-capabilities";
 
 function displayText(value: string | null) {
   return value || EMPTY_VALUE;
+}
+
+function priceForChild(
+  child: VariantPricingChildDetail,
+  prices: readonly PublicationPriceSummary[],
+) {
+  const official = prices.find(
+    (price) =>
+      (child.itemId && price.itemId === child.itemId) ||
+      (child.userProductId && price.userProductId === child.userProductId),
+  );
+
+  return {
+    value:
+      official?.standardPrice ??
+      official?.salePrice ??
+      official?.promotionPrice ??
+      child.price,
+    currencyId: official?.currencyId ?? child.currencyId,
+  };
 }
 
 function VariantImage({ child }: { child: VariantPricingChildDetail }) {
@@ -102,9 +129,20 @@ function MobileMetric({
   );
 }
 
-function MobileVariantCard({ child }: { child: VariantPricingChildDetail }) {
+function MobileVariantCard({
+  child,
+  productId,
+  prices,
+  capabilities,
+}: {
+  child: VariantPricingChildDetail;
+  productId: string;
+  prices: readonly PublicationPriceSummary[];
+  capabilities: PublicationCapabilities | null;
+}) {
   const referenceSize = displayText(child.filterableSize);
   const size = displayText(child.size);
+  const officialPrice = priceForChild(child, prices);
 
   return (
     <div className="rounded-2xl border border-dashboard-border bg-card p-4 shadow-[0_14px_36px_-30px_var(--dashboard-shadow)]">
@@ -138,7 +176,17 @@ function MobileVariantCard({ child }: { child: VariantPricingChildDetail }) {
                 </p>
               </div>
             </div>
-            <StatusBadge status={child.status} />
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              <StatusBadge status={child.status} />
+              {child.itemId ? (
+                <PublicationStatusButton
+                  key={child.status}
+                  productId={productId}
+                  itemId={child.itemId}
+                  status={child.status}
+                />
+              ) : null}
+            </div>
           </div>
 
           <div className="mt-2 min-w-0">
@@ -156,27 +204,99 @@ function MobileVariantCard({ child }: { child: VariantPricingChildDetail }) {
       </div>
 
       <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-dashboard-border pt-4">
-        <MobileMetric
-          label="Stock"
-          value={formatInteger(child.availableQuantity)}
-        />
+        <div className="min-w-0">
+          <dt className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">
+            Stock
+          </dt>
+          <dd className="mt-1 text-sm text-dashboard-foreground">
+            {child.itemId ? (
+              <InlinePublicationEditor
+                model="VARIANT_PRICING"
+                field="stock"
+                productId={productId}
+                itemId={child.itemId}
+                value={child.availableQuantity}
+                label={`stock de ${child.itemId}`}
+              />
+            ) : (
+              formatInteger(child.availableQuantity)
+            )}
+          </dd>
+        </div>
         <MobileMetric
           label="Vendidos"
           value={formatInteger(child.soldQuantity)}
         />
-        <MobileMetric
-          label="Precio"
-          value={formatMoney(child.price, child.currencyId)}
-        />
-        <MobileMetric label="SKU" value={displayText(child.sku)} />
+        <div className="min-w-0">
+          <dt className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">
+            Precio
+          </dt>
+          <dd className="mt-1 text-sm text-dashboard-foreground">
+            {child.itemId ? (
+              <InlinePublicationEditor
+                model="VARIANT_PRICING"
+                field="price"
+                productId={productId}
+                itemId={child.itemId}
+                value={officialPrice.value}
+                currencyId={officialPrice.currencyId}
+                label={`precio de ${child.itemId}`}
+              />
+            ) : (
+              formatMoney(officialPrice.value, officialPrice.currencyId)
+            )}
+          </dd>
+        </div>
+        <div className="min-w-0">
+          <dt className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">
+            SKU
+          </dt>
+          <dd className="mt-1 text-sm text-dashboard-foreground">
+            {child.itemId ? (
+              <EditSku
+                key={child.sku}
+                model="VARIANT_PRICING"
+                productId={productId}
+                itemId={child.itemId}
+                value={child.sku}
+                label={`SKU de ${child.itemId}`}
+              />
+            ) : (
+              displayText(child.sku)
+            )}
+          </dd>
+        </div>
       </dl>
 
-      <div className="mt-4 min-w-0 border-t border-dashboard-border pt-4 text-xs">
-        <p className="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">
-          MLA
-        </p>
-        <MlaLink child={child} />
+      <div className="mt-4 flex min-w-0 flex-col gap-3 border-t border-dashboard-border pt-4 text-xs sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p className="mb-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">
+            MLA
+          </p>
+          <MlaLink child={child} />
+        </div>
+        {child.itemId ? (
+          <PictureManager
+            key={child.pictures
+              .map(({ id, url }) => `${id}:${url}`)
+              .join("|")}
+            productId={productId}
+            itemId={child.itemId}
+            pictures={child.pictures}
+            title={child.title || child.itemId}
+            compact
+          />
+        ) : null}
       </div>
+      {child.itemId ? (
+        <div className="mt-3">
+          <PublicationChildContent
+            productId={productId}
+            itemId={child.itemId}
+            capabilities={capabilities}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -188,8 +308,14 @@ const cellClassName =
 
 export function VariantPricingChildren({
   items,
+  productId,
+  prices,
+  childCapabilities,
 }: Readonly<{
   items: readonly VariantPricingChildDetail[];
+  productId: string;
+  prices: readonly PublicationPriceSummary[];
+  childCapabilities: Readonly<Record<string, PublicationCapabilities | null>>;
 }>) {
   if (items.length === 0) {
     return (
@@ -218,7 +344,15 @@ export function VariantPricingChildren({
     <>
       <div className="space-y-3 lg:hidden">
         {sortedItems.map((child) => (
-          <MobileVariantCard key={child.id} child={child} />
+          <MobileVariantCard
+            key={child.id}
+            child={child}
+            productId={productId}
+            prices={prices}
+            capabilities={
+              child.itemId ? childCapabilities[child.itemId] ?? null : null
+            }
+          />
         ))}
       </div>
 
@@ -229,15 +363,15 @@ export function VariantPricingChildren({
               Variantes ordenadas por size y color
             </caption>
             <colgroup>
-              <col className="w-[4%]" />
-              <col className="w-[10%]" />
-              <col className="w-[7%]" />
-              <col className="w-[4%]" />
-              <col className="w-[7%]" />
-              <col className="w-[10%]" />
-              <col className="w-[14%]" />
+              <col className="w-[6%]" />
+              <col className="w-[9%]" />
+              <col className="w-[8%]" />
               <col className="w-[11%]" />
-              <col className="w-[10%]" />
+              <col className="w-[6%]" />
+              <col className="w-[14%]" />
+              <col className="w-[16%]" />
+              <col className="w-[15%]" />
+              <col className="w-[15%]" />
             </colgroup>
             <thead className="bg-dashboard-control">
               <tr>
@@ -260,7 +394,11 @@ export function VariantPricingChildren({
                 const sku = displayText(child.sku);
                 const stock = formatInteger(child.availableQuantity);
                 const sold = formatInteger(child.soldQuantity);
-                const price = formatMoney(child.price, child.currencyId);
+                const officialPrice = priceForChild(child, prices);
+                const price = formatMoney(
+                  officialPrice.value,
+                  officialPrice.currencyId,
+                );
 
                 return (
                   <tr
@@ -284,9 +422,20 @@ export function VariantPricingChildren({
                       </span>
                     </td>
                     <td className={`${cellClassName} whitespace-nowrap font-semibold tabular-nums`}>
-                      <span className="block truncate" title={stock}>
-                        {stock}
-                      </span>
+                      {child.itemId ? (
+                        <InlinePublicationEditor
+                          model="VARIANT_PRICING"
+                          field="stock"
+                          productId={productId}
+                          itemId={child.itemId}
+                          value={child.availableQuantity}
+                          label={`stock de ${child.itemId}`}
+                        />
+                      ) : (
+                        <span className="block truncate" title={stock}>
+                          {stock}
+                        </span>
+                      )}
                     </td>
                     <td className={`${cellClassName} whitespace-nowrap tabular-nums`}>
                       <span className="block truncate" title={sold}>
@@ -294,20 +443,67 @@ export function VariantPricingChildren({
                       </span>
                     </td>
                     <td className={`${cellClassName} whitespace-nowrap font-semibold tabular-nums`}>
-                      <span className="block truncate" title={price}>
-                        {price}
-                      </span>
+                      {child.itemId ? (
+                        <InlinePublicationEditor
+                          model="VARIANT_PRICING"
+                          field="price"
+                          productId={productId}
+                          itemId={child.itemId}
+                          value={officialPrice.value}
+                          currencyId={officialPrice.currencyId}
+                          label={`precio de ${child.itemId}`}
+                        />
+                      ) : (
+                        <span className="block truncate" title={price}>
+                          {price}
+                        </span>
+                      )}
                     </td>
                     <td className={`${cellClassName} font-mono text-[0.7rem]`}>
-                      <span className="block truncate" title={sku}>
-                        {sku}
-                      </span>
+                      {child.itemId ? (
+                        <EditSku
+                          key={child.sku}
+                          model="VARIANT_PRICING"
+                          productId={productId}
+                          itemId={child.itemId}
+                          value={child.sku}
+                          label={`SKU de ${child.itemId}`}
+                        />
+                      ) : (
+                        <span className="block truncate" title={sku}>
+                          {sku}
+                        </span>
+                      )}
                     </td>
                     <td className={cellClassName}>
-                      <StatusBadge status={child.status} />
+                      <div className="flex flex-col items-start gap-1.5">
+                        <StatusBadge status={child.status} />
+                        {child.itemId ? (
+                          <PublicationStatusButton
+                            key={child.status}
+                            productId={productId}
+                            itemId={child.itemId}
+                            status={child.status}
+                          />
+                        ) : null}
+                      </div>
                     </td>
                     <td className={`${cellClassName} min-w-0`}>
-                      <MlaLink child={child} />
+                      <div className="flex min-w-0 flex-col items-start gap-2">
+                        <MlaLink child={child} />
+                        {child.itemId ? (
+                          <PictureManager
+                            key={child.pictures
+                              .map(({ id, url }) => `${id}:${url}`)
+                              .join("|")}
+                            productId={productId}
+                            itemId={child.itemId}
+                            pictures={child.pictures}
+                            title={child.title || child.itemId}
+                            compact
+                          />
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -315,6 +511,20 @@ export function VariantPricingChildren({
             </tbody>
           </table>
         </div>
+      </div>
+      <div className="hidden space-y-3 lg:block">
+        {sortedItems.flatMap((child) =>
+          child.itemId
+            ? [
+                <PublicationChildContent
+                  key={child.itemId}
+                  productId={productId}
+                  itemId={child.itemId}
+                  capabilities={childCapabilities[child.itemId] ?? null}
+                />,
+              ]
+            : [],
+        )}
       </div>
     </>
   );

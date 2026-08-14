@@ -13,6 +13,7 @@ import { apiGet, ApiRequestError } from "@/lib/server/api-fetch";
 import type {
   PublicationDetail,
   PublicationModel,
+  PublicationPicture,
   SharedVariationDetail,
   VariantPricingChildDetail,
 } from "@/types/publication";
@@ -24,6 +25,10 @@ type ApiProduct = Readonly<{
   parent_item_id: string | null;
   family_name: string | null;
   title: string | null;
+  sku?: unknown;
+  seller_sku?: unknown;
+  description?: unknown;
+  attributes?: unknown;
   thumbnail: string | null;
   status: string | null;
   currency_id: string | null;
@@ -32,6 +37,8 @@ type ApiProduct = Readonly<{
   stock_total: number | null;
   children_count: number | null;
   permalink: string | null;
+  pictures?: unknown;
+  shared_skus?: unknown;
   shared_variations?: unknown;
   regular_price?: number | null;
   regular_price_from?: number | null;
@@ -57,6 +64,14 @@ type ApiChild = Readonly<{
   sold_quantity: number | null;
   attributes?: unknown;
   permalink: string | null;
+  pictures?: unknown;
+}>;
+
+type ApiPicture = Readonly<{
+  id?: unknown;
+  url?: unknown;
+  secureUrl?: unknown;
+  secure_url?: unknown;
 }>;
 
 type ApiSharedVariation = Readonly<{
@@ -70,10 +85,12 @@ type ApiSharedVariation = Readonly<{
 type ApiPublicationDetailResponse = Readonly<{
   product: ApiProduct;
   children?: readonly ApiChild[];
+  management?: unknown;
 }>;
 
 function mapSharedVariation(
   variation: ApiSharedVariation,
+  sharedSku: string | null,
 ): SharedVariationDetail {
   const attributes = normalizeAttributes(variation.attributes);
 
@@ -82,6 +99,8 @@ function mapSharedVariation(
     label: textOrNull(variation.label),
     color: attributeValue(attributes, ["COLOR", "MAIN_COLOR"]),
     size: attributeValue(attributes, ["FILTRABLE_SIZE", "SIZE", "TALLE"]),
+    sku:
+      sharedSku ?? attributeValue(attributes, ["SELLER_SKU", "SKU"]),
     availableQuantity: asFiniteNumber(variation.availableQuantity),
     soldQuantity: asFiniteNumber(variation.soldQuantity),
     attributes,
@@ -108,6 +127,7 @@ function mapChild(child: ApiChild): VariantPricingChildDetail {
     status: textOrNull(child.status),
     listingTypeId: textOrNull(child.listing_type_id),
     permalink: safeExternalUrl(child.permalink),
+    pictures: normalizePictures(child.pictures),
     attributes,
   };
 }
@@ -116,11 +136,15 @@ function mapDetail(
   response: ApiPublicationDetailResponse,
 ): PublicationDetail {
   const product = response.product;
+  const productAttributes = normalizeAttributes(product.attributes);
   const rawSharedVariations = asArray<ApiSharedVariation>(
     product.shared_variations,
   );
   const rawChildren = asArray<ApiChild>(response.children);
-  const sharedVariations = (rawSharedVariations ?? []).map(mapSharedVariation);
+  const sharedSkus = normalizeSharedSkus(product.shared_skus);
+  const sharedVariations = (rawSharedVariations ?? []).map((variation) =>
+    mapSharedVariation(variation, sharedSkus.get(variation.id) ?? null),
+  );
   const children = (rawChildren ?? []).map(mapChild);
   const currencyId = textOrNull(product.currency_id);
   const regularPrice =
@@ -138,7 +162,14 @@ function mapDetail(
     model: product.model,
     familyId: textOrNull(product.family_id),
     parentItemId: textOrNull(product.parent_item_id),
+    sku:
+      textOrNull(product.sku) ??
+      textOrNull(product.seller_sku) ??
+      attributeValue(productAttributes, ["SELLER_SKU", "SKU"]) ??
+      managementSku(response.management),
     title: textOrNull(product.title) ?? textOrNull(product.family_name),
+    description: normalizeDescription(product.description),
+    attributes: productAttributes,
     thumbnail: normalizeThumbnail(product.thumbnail),
     status: textOrNull(product.status),
     currencyId,
@@ -167,9 +198,22 @@ function mapDetail(
     hasFlex:
       typeof product.has_flex === "boolean" ? product.has_flex : null,
     permalink: safeExternalUrl(product.permalink),
+    pictures: normalizePictures(product.pictures),
     sharedVariations,
     children,
   };
+}
+
+function managementSku(value: unknown): string | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  return (
+    textOrNull(value.sku) ??
+    textOrNull(value.sellerSku) ??
+    textOrNull(value.seller_sku)
+  );
 }
 
 export async function getPublicationDetail(productId: string) {
@@ -192,6 +236,56 @@ function asArray<T>(value: unknown): readonly T[] | null {
   return Array.isArray(value) ? (value as readonly T[]) : null;
 }
 
+function normalizePictures(value: unknown): readonly PublicationPicture[] {
+  const pictures = asArray<ApiPicture>(value);
+
+  if (!pictures) {
+    return [];
+  }
+
+  const normalized = new Map<string, PublicationPicture>();
+
+  for (const picture of pictures) {
+    if (!isRecord(picture)) {
+      continue;
+    }
+
+    const id = textOrNull(picture.id);
+    const url =
+      normalizeThumbnail(picture.secure_url) ??
+      normalizeThumbnail(picture.secureUrl) ??
+      normalizeThumbnail(picture.url);
+
+    if (id && url && !normalized.has(id)) {
+      normalized.set(id, { id, url });
+    }
+  }
+
+  return [...normalized.values()];
+}
+
+function normalizeSharedSkus(value: unknown): ReadonlyMap<string, string> {
+  const skus = new Map<string, string>();
+
+  if (!isRecord(value)) {
+    return skus;
+  }
+
+  for (const [variationId, rawSku] of Object.entries(value)) {
+    const sku = textOrNull(rawSku);
+
+    if (/^\d+$/.test(variationId) && sku) {
+      skus.set(variationId, sku);
+    }
+  }
+
+  return skus;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
 function safeExternalUrl(value: unknown) {
   const text = textOrNull(value);
 
@@ -207,4 +301,22 @@ function safeExternalUrl(value: unknown) {
   } catch {
     return null;
   }
+}
+
+function normalizeDescription(value: unknown) {
+  const direct = textOrNull(value);
+
+  if (direct) {
+    return direct;
+  }
+
+  if (isRecord(value)) {
+    return (
+      textOrNull(value.plain_text) ??
+      textOrNull(value.plainText) ??
+      textOrNull(value.text)
+    );
+  }
+
+  return null;
 }

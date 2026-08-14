@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Plus } from "lucide-react";
 
 import { PublicationList } from "@/components/publicaciones/publication-list";
 import { PublicationPagination } from "@/components/publicaciones/publication-pagination";
@@ -57,13 +59,22 @@ export default async function PublicacionesPage({
           </p>
         </div>
 
-        <p className="text-sm text-dashboard-muted">
-          Página{" "}
-          <span className="font-semibold text-dashboard-foreground">
-            {result.paging.page}
-          </span>{" "}
-          de {Math.max(result.paging.totalPages, 1)}
-        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-sm text-dashboard-muted">
+            Página{" "}
+            <span className="font-semibold text-dashboard-foreground">
+              {result.paging.page}
+            </span>{" "}
+            de {Math.max(result.paging.totalPages, 1)}
+          </p>
+          <Link
+            href="/dashboard/publicaciones/nueva"
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-dashboard-accent px-4 text-sm font-semibold text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dashboard-accent"
+          >
+            <Plus aria-hidden="true" className="h-4 w-4" />
+            Nueva publicación
+          </Link>
+        </div>
       </header>
 
       <PublicationList publications={result.publications} />

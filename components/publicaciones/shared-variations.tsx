@@ -2,6 +2,8 @@ import {
   EMPTY_VALUE,
   formatInteger,
 } from "@/components/publicaciones/publication-display";
+import { EditSku } from "@/components/publicaciones/edit-sku";
+import { InlinePublicationEditor } from "@/components/publicaciones/inline-publication-editor";
 import {
   comparePublicationSizes,
   comparePublicationText,
@@ -25,17 +27,55 @@ function VariationMetric({
 }
 
 export function SharedVariations({
+  productId,
   variations,
-}: Readonly<{ variations: readonly SharedVariationDetail[] }>) {
+  stock,
+  sku,
+}: Readonly<{
+  productId: string;
+  variations: readonly SharedVariationDetail[];
+  stock: number | null;
+  sku: string | null;
+}>) {
   if (variations.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-dashboard-border bg-card px-6 py-10 text-center">
+      <div className="rounded-2xl border border-dashboard-border bg-card p-5 shadow-[0_12px_30px_-26px_var(--dashboard-shadow)]">
         <p className="text-sm font-semibold text-dashboard-foreground">
-          No hay variaciones disponibles
+          Publicación sin variaciones
         </p>
         <p className="mt-1 text-sm text-dashboard-muted">
-          Esta publicación no tiene variaciones compartidas registradas.
+          El stock y el SKU se administran sobre el item principal.
         </p>
+        <dl className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="rounded-xl bg-dashboard-control px-4 py-3">
+            <dt className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">
+              Stock
+            </dt>
+            <dd className="mt-1 text-sm text-dashboard-foreground">
+              <InlinePublicationEditor
+                model="SHARED"
+                field="stock"
+                productId={productId}
+                value={stock}
+                label="stock de la publicación"
+              />
+            </dd>
+          </div>
+          <div className="rounded-xl bg-dashboard-control px-4 py-3">
+            <dt className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">
+              SKU
+            </dt>
+            <dd className="mt-1 text-sm text-dashboard-foreground">
+              <EditSku
+                key={sku}
+                model="SHARED"
+                productId={productId}
+                value={sku}
+                label="SKU de la publicación"
+              />
+            </dd>
+          </div>
+        </dl>
       </div>
     );
   }
@@ -64,14 +104,40 @@ export function SharedVariations({
                 label="Color"
                 value={variation.color || EMPTY_VALUE}
               />
-              <VariationMetric
-                label="Stock"
-                value={formatInteger(variation.availableQuantity)}
-              />
+              <div className="min-w-0">
+                <dt className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">
+                  Stock
+                </dt>
+                <dd className="mt-1 text-sm text-dashboard-foreground">
+                  <InlinePublicationEditor
+                    model="SHARED"
+                    field="stock"
+                    productId={productId}
+                    variationId={variation.id}
+                    value={variation.availableQuantity}
+                    label={`stock de la variación ${variation.id}`}
+                  />
+                </dd>
+              </div>
               <VariationMetric
                 label="Vendidos"
                 value={formatInteger(variation.soldQuantity)}
               />
+              <div className="col-span-2 min-w-0 sm:col-span-1">
+                <dt className="text-[0.625rem] font-semibold uppercase tracking-[0.14em] text-dashboard-muted">
+                  SKU
+                </dt>
+                <dd className="mt-1 text-sm text-dashboard-foreground">
+                  <EditSku
+                    key={variation.sku}
+                    model="SHARED"
+                    productId={productId}
+                    variationId={variation.id}
+                    value={variation.sku}
+                    label={`SKU de la variación ${variation.id}`}
+                  />
+                </dd>
+              </div>
             </dl>
 
             <div className="mt-4 border-t border-dashboard-border pt-3">
@@ -92,11 +158,12 @@ export function SharedVariations({
             Variaciones compartidas ordenadas por talle y color
           </caption>
           <colgroup>
-            <col className="w-[14%]" />
-            <col className="w-[24%]" />
             <col className="w-[12%]" />
+            <col className="w-[18%]" />
             <col className="w-[12%]" />
-            <col className="w-[38%]" />
+            <col className="w-[10%]" />
+            <col className="w-[22%]" />
+            <col className="w-[26%]" />
           </colgroup>
           <thead className="bg-dashboard-control">
             <tr className="border-b border-dashboard-border">
@@ -105,6 +172,7 @@ export function SharedVariations({
                 "Color",
                 "Stock",
                 "Vendidos",
+                "SKU",
                 "ID de variación",
               ].map((heading) => (
                 <th
@@ -135,10 +203,27 @@ export function SharedVariations({
                     <span className="block truncate" title={color}>{color}</span>
                   </td>
                   <td className="whitespace-nowrap px-3 py-3 text-xs font-semibold tabular-nums text-dashboard-foreground">
-                    {formatInteger(variation.availableQuantity)}
+                    <InlinePublicationEditor
+                      model="SHARED"
+                      field="stock"
+                      productId={productId}
+                      variationId={variation.id}
+                      value={variation.availableQuantity}
+                      label={`stock de la variación ${variation.id}`}
+                    />
                   </td>
                   <td className="whitespace-nowrap px-3 py-3 text-xs tabular-nums text-dashboard-foreground">
                     {formatInteger(variation.soldQuantity)}
+                  </td>
+                  <td className="px-3 py-3 text-xs text-dashboard-foreground">
+                    <EditSku
+                      key={variation.sku}
+                      model="SHARED"
+                      productId={productId}
+                      variationId={variation.id}
+                      value={variation.sku}
+                      label={`SKU de la variación ${variation.id}`}
+                    />
                   </td>
                   <td className="px-3 py-3 font-mono text-[0.7rem] text-dashboard-foreground">
                     <span className="block truncate" title={variationId}>

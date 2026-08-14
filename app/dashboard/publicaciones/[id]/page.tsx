@@ -4,9 +4,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { PublicationDetailHeader } from "@/components/publicaciones/publication-detail-header";
+import { PublicationActivity } from "@/components/publicaciones/publication-activity";
+import { PublicationCommercialSummary } from "@/components/publicaciones/publication-commercial-summary";
+import { PublicationContent } from "@/components/publicaciones/publication-content";
 import { SharedVariations } from "@/components/publicaciones/shared-variations";
 import { VariantPricingChildren } from "@/components/publicaciones/variant-pricing-children";
 import { getPublicationDetail } from "@/lib/api/publication-detail";
+import { getPublicationActivity } from "@/lib/api/publication-activity";
+import { getPublicationCapabilities } from "@/lib/api/publication-capabilities";
+import { getPublicationPrices } from "@/lib/api/publication-prices";
+import { getPublicationPromotions } from "@/lib/api/publication-promotions";
+import type { PublicationDetail } from "@/types/publication";
 
 export const metadata: Metadata = {
   title: "Detalle de publicación | ML Control",
@@ -34,6 +42,17 @@ export default async function PublicationDetailPage({
     notFound();
   }
 
+  const [prices, promotions, activity, capabilities] = await Promise.all([
+    getPublicationPrices(id),
+    getPublicationPromotions(id),
+    getPublicationActivity(id),
+    getPublicationCapabilities(id),
+  ]);
+  const childCapabilities =
+    publication.model === "VARIANT_PRICING"
+      ? await getChildCapabilities(id, publication.children)
+      : {};
+
   return (
     <section className="publication-detail-page w-full min-w-0 space-y-6">
       <Link
@@ -44,7 +63,23 @@ export default async function PublicationDetailPage({
         Volver a publicaciones
       </Link>
 
-      <PublicationDetailHeader publication={publication} />
+      <PublicationDetailHeader
+        publication={publication}
+        capabilities={capabilities}
+        prices={prices}
+      />
+
+      <PublicationCommercialSummary
+        publication={publication}
+        prices={prices}
+        promotions={promotions}
+        capabilities={capabilities}
+      />
+
+      <PublicationContent
+        publication={publication}
+        capabilities={capabilities}
+      />
 
       <section aria-labelledby="variants-heading" className="space-y-4">
         <div>
@@ -67,11 +102,52 @@ export default async function PublicationDetailPage({
         </div>
 
         {publication.model === "SHARED" ? (
-          <SharedVariations variations={publication.sharedVariations} />
+          <SharedVariations
+            productId={publication.id}
+            variations={publication.sharedVariations}
+            stock={publication.stockTotal}
+            sku={publication.sku}
+          />
         ) : (
-          <VariantPricingChildren items={publication.children} />
+          <VariantPricingChildren
+            productId={publication.id}
+            items={publication.children}
+            prices={prices?.targets ?? []}
+            childCapabilities={childCapabilities}
+          />
         )}
       </section>
+
+      <PublicationActivity actions={activity} />
     </section>
   );
+}
+
+async function getChildCapabilities(
+  productId: string,
+  children: PublicationDetail["children"],
+) {
+  const entries: Array<
+    readonly [
+      string,
+      Awaited<ReturnType<typeof getPublicationCapabilities>>,
+    ]
+  > = [];
+  const itemIds = children.flatMap((child) =>
+    child.itemId ? [child.itemId] : [],
+  );
+
+  for (let index = 0; index < itemIds.length; index += 6) {
+    const batch = itemIds.slice(index, index + 6);
+    const settled = await Promise.allSettled(
+      batch.map((itemId) => getPublicationCapabilities(productId, itemId)),
+    );
+    settled.forEach((result, offset) => {
+      if (result.status === "fulfilled") {
+        entries.push([batch[offset], result.value] as const);
+      }
+    });
+  }
+
+  return Object.fromEntries(entries);
 }
